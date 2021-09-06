@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "name": "electron-example-license-gate",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "postinstall": "electron-builder install-app-deps",
+    "start": "electron .",
+    "dist": "electron-builder build --publish always"
+  },
+  "build": {
+    "publish": {
+      "provider": "keygen",
+      "account": "1fddcec8-8dd3-4d8d-9b16-215cac0f9b52",
+      "product": "858e0235-3237-46e4-a86c-ef01ae0b2c21",
+      "channel": "stable"
+    }
+  },
+  "dependencies": {
+    "electron-main-fetch": "^1.0.0",
+    "electron-unhandled": "^3.0.2",
+    "electron-updater": "^4.3.9"
+  },
+  "devDependencies": {
+    "electron": "^14.0.0",
+    "electron-builder": "^22.13.1"
+  }
+}
