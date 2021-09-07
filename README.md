@@ -2,9 +2,10 @@
 
 A minimal Electron app, showcasing how to add a license "gate" in front of your
 app's main window. The gate will only be "unlocked" for licensed users. This
-example includes license validation and auto-updates for valid licenses.
+example includes license validation and auto-updates for valid licenses, and
+an unlicensed "evaluation mode."
 
-![image](https://user-images.githubusercontent.com/6979737/132259034-ee3d61d8-78cb-4b34-8c20-d5235a82fc44.png)
+![image](https://user-images.githubusercontent.com/6979737/132401811-1253f4c3-2410-40b8-8c33-f0b120cb0b2f.png)
 
 ## Running the example app
 

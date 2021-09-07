@@ -13,13 +13,26 @@ body {
   justify-content: center;
   align-items: center;
   background: #f7f8fb;
-  text-align: center;
   color: #000;
   margin: 0;
+}
+
+main {
+  text-align: center;
   padding: 2rem;
 }
 
+aside {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 1rem;
+  color: #abb3c1;
+}
+
 form {
+  text-align: center;
+  padding: 2rem;
   width: 100%;
   margin: 0;
 }

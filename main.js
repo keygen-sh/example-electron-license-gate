@@ -85,6 +85,7 @@ async function gateAppLaunchWithLicense(appLauncher) {
         case 0:
           // Set to evaluation mode
           store.set('app.mode', 'EVALUATION')
+          store.delete('license')
 
           // Close the license gate window
           gateWindow.close()
@@ -108,19 +109,26 @@ async function gateAppLaunchWithLicense(appLauncher) {
     }
 
     // Branch on the license's validation code
-    const { valid, constant: code } = res.meta
-    switch (code) {
+    const { valid, constant } = res.meta
+
+    switch (constant) {
       // License is valid. All is well.
       case 'VALID':
       // For expired licenses, we still want to allow the app to be used, but automatic
       // updates will not be allowed.
       case 'EXPIRED': {
+        const license = res.data
+
+        store.set('license.expiry', license.attributes.expiry)
+        store.set('license.key', license.attributes.key)
+        store.set('license.status', constant)
+
         store.set('app.mode', 'LICENSED')
 
         await dialog.showMessageBox(gateWindow, {
           type: valid ? 'info' : 'warning',
           title: 'Thanks for your business!',
-          message: `The activation token you entered belongs to license ${res.data.id.substring(0, 8)}. Your license is ${code.toLowerCase()}.`,
+          message: `The activation token you entered belongs to license ${res.data.id.substring(0, 8)}. Your license is ${constant.toLowerCase()}.`,
           detail: valid ? 'Automatic updates are enabled.' : 'Automatic updates are disabled.',
           buttons: [
             'Continue',
@@ -137,11 +145,14 @@ async function gateAppLaunchWithLicense(appLauncher) {
       }
       // All other validation codes, e.g. SUSPENDED, etc. are treated as invalid.
       default: {
+        store.set('app.mode', 'UNLICENSED')
+        store.delete('license')
+
         await dialog.showMessageBox(gateWindow, {
           type: 'error',
           title: 'Your license is invalid',
           message: 'The activation token you entered belongs to a license that is no longer valid.',
-          detail: `Validation code: ${code}`,
+          detail: `Validation code: ${constant}`,
           buttons: [
             'Exit',
           ],
