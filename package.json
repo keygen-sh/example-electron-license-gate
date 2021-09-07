@@ -17,9 +17,10 @@
     }
   },
   "dependencies": {
-    "electron-main-fetch": "^1.0.0",
+    "electron-store": "^8.0.0",
     "electron-unhandled": "^3.0.2",
-    "electron-updater": "^4.3.9"
+    "electron-updater": "^4.3.9",
+    "node-fetch": "^2"
   },
   "devDependencies": {
     "electron": "^14.0.0",

@@ -1,23 +1,37 @@
-const { app, dialog, ipcMain, BrowserWindow } = require('electron')
+const { app, dialog, shell, ipcMain, BrowserWindow } = require('electron')
 const { autoUpdater } = require('electron-updater')
 const unhandled = require('electron-unhandled')
-const fetch = require('electron-main-fetch')
+const Store = require('electron-store')
+const fetch = require('node-fetch')
 const path = require('path')
 
 // Catch unhandled errors and promise rejections
 unhandled()
 
+const store = new Store({ encryptionKey: 'encryption-key-here' })
+const accountId = '1fddcec8-8dd3-4d8d-9b16-215cac0f9b52'
+const productId = '858e0235-3237-46e4-a86c-ef01ae0b2c21'
 const isDev = process.env.NODE_ENV === 'development'
+
+store.set('app.version', app.getVersion())
 
 // Validate a license by activation token. Returns the validation result and a license object.
 async function validateLicenseByActivationToken(token) {
-  const licenseResponse = await fetch('https://api.keygen.sh/v1/accounts/demo/me', { headers: { authorization: `Bearer ${token}` } })
+  const licenseResponse = await fetch(`https://api.keygen.sh/v1/accounts/${accountId}/me`, { headers: { authorization: `Bearer ${token}` } })
   const licensePayload = await licenseResponse.json()
   if (licensePayload.errors) {
     return { status: licenseResponse.status, errors: licensePayload.errors }
   }
 
-  const validateResponse = await fetch(`https://api.keygen.sh/v1/accounts/demo/licenses/${licensePayload.data.id}/actions/validate`, { method: 'POST', headers: { authorization: `Bearer ${token}` } })
+  const validateResponse = await fetch(`https://api.keygen.sh/v1/accounts/${accountId}/licenses/${licensePayload.data.id}/actions/validate`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      meta: {
+        scope: { product: productId },
+      },
+    }),
+  })
   const validatePayload = await validateResponse.json()
   if (validatePayload.errors) {
     return { status: validateResponse.status, errors: validatePayload.errors }
@@ -58,26 +72,34 @@ async function gateAppLaunchWithLicense(appLauncher) {
       const choice = await dialog.showMessageBox(gateWindow, {
         type: 'error',
         title: 'Your license is invalid',
-        message: 'The activation token you entered does not belong to a license. Would you like to buy a license?',
+        message: 'The activation token you entered does not belong to a license for this product. Would you like to buy a license?',
         detail: `Error code: ${code ?? res.status}`,
         buttons: [
-          'Exit',
-          'Try Again',
-          'Buy a License',
+          'Continue evaluation',
+          'Try again',
+          'Buy a license',
         ],
       })
 
       switch (choice.response) {
         case 0:
-          app.exit(1)
+          // Set to evaluation mode
+          store.set('app.mode', 'EVALUATION')
+
+          // Close the license gate window
+          gateWindow.close()
+
+          // Launch our main app
+          appLauncher(token)
 
           break
         case 1:
-          // noop
+          // noop (dismiss and try again)
 
           break
         case 2:
           // TODO(ezekg) Open a link to purchase page
+          shell.openExternal('https://keygen.sh/for-electron-apps/')
 
           break
       }
@@ -93,6 +115,8 @@ async function gateAppLaunchWithLicense(appLauncher) {
       // For expired licenses, we still want to allow the app to be used, but automatic
       // updates will not be allowed.
       case 'EXPIRED': {
+        store.set('app.mode', 'LICENSED')
+
         await dialog.showMessageBox(gateWindow, {
           type: valid ? 'info' : 'warning',
           title: 'Thanks for your business!',
@@ -137,6 +161,7 @@ function launchAppWithToken(token) {
     width: 800,
     height: 600,
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       devTools: isDev,
     },
   })
