@@ -17,7 +17,13 @@ store.set('app.version', app.getVersion())
 
 // Validate a license by activation token. Returns the validation result and a license object.
 async function validateLicenseByActivationToken(token) {
-  const licenseResponse = await fetch(`https://api.keygen.sh/v1/accounts/${accountId}/me`, { headers: { authorization: `Bearer ${token}` } })
+  const headers = {
+    'content-type': 'application/json',
+    accept: 'application/json',
+    authorization: `Bearer ${token}`,
+  }
+
+  const licenseResponse = await fetch(`https://api.keygen.sh/v1/accounts/${accountId}/me`, { headers })
   const licensePayload = await licenseResponse.json()
   if (licensePayload.errors) {
     return { status: licenseResponse.status, errors: licensePayload.errors }
@@ -25,7 +31,7 @@ async function validateLicenseByActivationToken(token) {
 
   const validateResponse = await fetch(`https://api.keygen.sh/v1/accounts/${accountId}/licenses/${licensePayload.data.id}/actions/validate`, {
     method: 'POST',
-    headers: { authorization: `Bearer ${token}` },
+    headers,
     body: JSON.stringify({
       meta: {
         scope: { product: productId },
