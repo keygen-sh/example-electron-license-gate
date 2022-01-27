@@ -7,8 +7,8 @@ window.addEventListener('DOMContentLoaded', () => {
     event.preventDefault()
 
     const data = new FormData(gate)
-    const token = data.get('token')
+    const key = data.get('license-key')
 
-    ipcRenderer.send('GATE_SUBMIT', { token })
+    ipcRenderer.send('GATE_SUBMIT', { key })
   })
 })

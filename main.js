@@ -15,38 +15,30 @@ const isDev = process.env.NODE_ENV === 'development'
 
 store.set('app.version', app.getVersion())
 
-// Validate a license by activation token. Returns the validation result and a license object.
-async function validateLicenseByActivationToken(token) {
-  const headers = {
-    'content-type': 'application/json',
-    accept: 'application/json',
-    authorization: `Bearer ${token}`,
-  }
-
-  const licenseResponse = await fetch(`https://api.keygen.sh/v1/accounts/${accountId}/me`, { headers })
-  const licensePayload = await licenseResponse.json()
-  if (licensePayload.errors) {
-    return { status: licenseResponse.status, errors: licensePayload.errors }
-  }
-
-  const validateResponse = await fetch(`https://api.keygen.sh/v1/accounts/${accountId}/licenses/${licensePayload.data.id}/actions/validate`, {
+// Validate a license key for the product. Returns the validation result and a license object.
+async function validateLicenseKey(key) {
+  const validation = await fetch(`https://api.keygen.sh/v1/accounts/${accountId}/licenses/actions/validate-key`, {
     method: 'POST',
-    headers,
+    headers: {
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
     body: JSON.stringify({
       meta: {
         scope: { product: productId },
-      },
+        key,
+      }
     }),
   })
-  const validatePayload = await validateResponse.json()
-  if (validatePayload.errors) {
-    return { status: validateResponse.status, errors: validatePayload.errors }
+  const { meta, data, errors } = await validation.json()
+  if (errors) {
+    return { status: validation.status, errors }
   }
 
   return {
-    status: validateResponse.status,
-    meta: validatePayload.meta,
-    data: validatePayload.data,
+    status: validation.status,
+    meta,
+    data,
   }
 }
 
@@ -70,15 +62,15 @@ async function gateAppLaunchWithLicense(appLauncher) {
     gateWindow.webContents.openDevTools({ mode: 'detach' })
   }
 
-  ipcMain.on('GATE_SUBMIT', async (_event, { token }) => {
-    // Validate the license that belongs to the given activation token
-    const res = await validateLicenseByActivationToken(token)
+  ipcMain.on('GATE_SUBMIT', async (_event, { key }) => {
+    // Validate the license key
+    const res = await validateLicenseKey(key)
     if (res.errors) {
       const [{ code }] = res.errors
       const choice = await dialog.showMessageBox(gateWindow, {
         type: 'error',
         title: 'Your license is invalid',
-        message: 'The activation token you entered does not belong to a license for this product. Would you like to buy a license?',
+        message: 'The license key you entered does not exist for this product. Would you like to buy a license?',
         detail: `Error code: ${code ?? res.status}`,
         buttons: [
           'Continue evaluation',
@@ -97,7 +89,7 @@ async function gateAppLaunchWithLicense(appLauncher) {
           gateWindow.close()
 
           // Launch our main app
-          appLauncher(token)
+          appLauncher(key)
 
           break
         case 1:
@@ -134,7 +126,7 @@ async function gateAppLaunchWithLicense(appLauncher) {
         await dialog.showMessageBox(gateWindow, {
           type: valid ? 'info' : 'warning',
           title: 'Thanks for your business!',
-          message: `The activation token you entered belongs to license ${res.data.id.substring(0, 8)}. Your license is ${constant.toLowerCase()}.`,
+          message: `Your license ID is ${res.data.id.substring(0, 8)}. It is ${constant.toLowerCase()}.`,
           detail: valid ? 'Automatic updates are enabled.' : 'Automatic updates are disabled.',
           buttons: [
             'Continue',
@@ -145,7 +137,7 @@ async function gateAppLaunchWithLicense(appLauncher) {
         gateWindow.close()
 
         // Launch our main app
-        appLauncher(token)
+        appLauncher(key)
 
         break
       }
@@ -157,7 +149,7 @@ async function gateAppLaunchWithLicense(appLauncher) {
         await dialog.showMessageBox(gateWindow, {
           type: 'error',
           title: 'Your license is invalid',
-          message: 'The activation token you entered belongs to a license that is no longer valid.',
+          message: 'That license key is no longer valid.',
           detail: `Validation code: ${constant}`,
           buttons: [
             'Exit',
@@ -173,7 +165,7 @@ async function gateAppLaunchWithLicense(appLauncher) {
 }
 
 // Launch the main application window and configure automatic updates.
-function launchAppWithToken(token) {
+function launchAppWithLicenseKey(key) {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -186,8 +178,8 @@ function launchAppWithToken(token) {
   mainWindow.loadFile('index.html')
 
   if (!isDev) {
-    // Check for updates right away
-    autoUpdater.addAuthHeader(`Bearer ${token}`)
+    // Check for updates right away using license key authentication
+    autoUpdater.addAuthHeader(`License ${key}`)
     autoUpdater.checkForUpdatesAndNotify()
 
     // Check for updates periodically
@@ -198,6 +190,6 @@ function launchAppWithToken(token) {
   }
 }
 
-app.whenReady().then(() => gateAppLaunchWithLicense(launchAppWithToken))
+app.whenReady().then(() => gateAppLaunchWithLicense(launchAppWithLicenseKey))
 
 app.on('window-all-closed', () => app.quit())

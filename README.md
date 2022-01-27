@@ -21,16 +21,16 @@ Then start the app:
 yarn start
 ```
 
-## Demo activation tokens
+## Demo license keys
 
-The following activation tokens are available for demo purposes.
+The following license keys are available for demo purposes.
 
-| Status      | Activation token                           |
-|:------------|:-------------------------------------------|
-| `VALID`     | `activ-663f79148696b378929399bc757548ffv3` |
-| `EXPIRED`   | `activ-3d42f2e930217b8121c2dfd52722baafv3` |
-| `SUSPENDED` | `activ-2902955badb2e80f7574dce1ad72c703v3` |
-| `NOT_FOUND` | `activ-thisisnotavalidactivationtoken`     |
+| Status      | License key                             |
+|:------------|:----------------------------------------|
+| `VALID`     | `161DEA-E348CE-9EEA17-8BBFBD-4A26EA-V3` |
+| `EXPIRED`   | `C47144-EEADCF-920428-7F327A-2CBE9C-V3` |
+| `SUSPENDED` | `08887C-DEA1F9-6AD1BE-692693-6037D2-V3` |
+| `NOT_FOUND` | `000000-000000-000000-000000-000000-V3` |
 
 ## Building and packaging
 
