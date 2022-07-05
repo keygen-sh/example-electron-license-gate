@@ -107,9 +107,9 @@ async function gateAppLaunchWithLicense(appLauncher) {
     }
 
     // Branch on the license's validation code
-    const { valid, constant } = res.meta
+    const { valid, code } = res.meta
 
-    switch (constant) {
+    switch (code) {
       // License is valid. All is well.
       case 'VALID':
       // For expired licenses, we still want to allow the app to be used, but automatic
@@ -119,14 +119,14 @@ async function gateAppLaunchWithLicense(appLauncher) {
 
         store.set('license.expiry', license.attributes.expiry)
         store.set('license.key', license.attributes.key)
-        store.set('license.status', constant)
+        store.set('license.status', code)
 
         store.set('app.mode', 'LICENSED')
 
         await dialog.showMessageBox(gateWindow, {
           type: valid ? 'info' : 'warning',
           title: 'Thanks for your business!',
-          message: `Your license ID is ${res.data.id.substring(0, 8)}. It is ${constant.toLowerCase()}.`,
+          message: `Your license ID is ${res.data.id.substring(0, 8)}. It is ${code.toLowerCase()}.`,
           detail: valid ? 'Automatic updates are enabled.' : 'Automatic updates are disabled.',
           buttons: [
             'Continue',
@@ -150,7 +150,7 @@ async function gateAppLaunchWithLicense(appLauncher) {
           type: 'error',
           title: 'Your license is invalid',
           message: 'That license key is no longer valid.',
-          detail: `Validation code: ${constant}`,
+          detail: `Validation code: ${code}`,
           buttons: [
             'Exit',
           ],
