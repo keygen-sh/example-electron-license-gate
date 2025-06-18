@@ -9,16 +9,16 @@ an unlicensed "evaluation mode."
 
 ## Running the example app
 
-First up, install dependencies with [`yarn`](https://yarnpkg.comg):
+First up, install dependencies with `npm`:
 
 ```
-yarn
+npm install --frozen-lockfile
 ```
 
 Then start the app:
 
 ```
-yarn start
+npm run start
 ```
 
 ## Demo license keys
@@ -34,16 +34,10 @@ The following license keys are available for demo purposes.
 
 ## Building and packaging
 
-To build the app:
+To build, package and publish the app:
 
 ```
-yarn build
-```
-
-To package and publish the app:
-
-```
-yarn dist
+npm run dist
 ```
 
 ## Questions?

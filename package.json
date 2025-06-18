@@ -17,13 +17,13 @@
     }
   },
   "dependencies": {
-    "electron-store": "^8.0.0",
-    "electron-unhandled": "^3.0.2",
-    "electron-updater": "^4.5.0",
+    "electron-store": "^8",
+    "electron-unhandled": "^3",
+    "electron-updater": "^6",
     "node-fetch": "^2"
   },
   "devDependencies": {
-    "electron": "^14.0.0",
-    "electron-builder": "^22.14.1"
+    "electron": "^36",
+    "electron-builder": "^26"
   }
 }
